@@ -101,7 +101,9 @@ class ParseImage:
         
     def blockParser(self, window_dimension = 2):
         """ 
-        Parse a square image in spiral.
+        Parse a square image by block.
+        INPUT:
+        	window_dimension: (int) parse the image in block of size (window_dimension x window_dimension)
         OUTPUT:
             vector representing the image 
         """
