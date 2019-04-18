@@ -282,82 +282,42 @@ tree_tensor = dict()
 for layer in range(tree_depth):
     print('\n-------> layer: '+str(layer))
     print('iterates = '+str(iterates))
-    if layer == 0:
-        for i in range(iterates):
-            if i % 2 != 0: continue 
+    for i in range(iterates):
+        if i % 2 != 0: continue 
+        
+        #compute ro
+        ind1 = i
+        ind2 = i + 1
+        ro = reduced_covariance(Phi, ind1, ind2)
+        #print('reduced ro shape' +str(ro.shape))
+        #svd
+        u, s, v = np.linalg.svd(ro)
+        #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
+        #---------OLD eigenvalues = s**2
+        eigenvalues = s
+        trace = np.sum(eigenvalues)
 
-            #print('   ----> iteration: '+str(i))
-            #compute ro
-            ind1 = i
-            ind2 = i + 1
-            ro = reduced_covariance(Phi, ind1, ind2)
-            
-            #svd
-            u, s, v = np.linalg.svd(ro)
-            #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
-            #---------OLD eigenvalues = s**2
-            eigenvalues = s
-            trace = np.sum(eigenvalues)
+        truncation_sum = 0
+        # Gross notation, but makes indexing nicer
+        first_truncated_eigenvalue = 0
 
-            truncation_sum = 0
-            # Gross notation, but makes indexing nicer
-            first_truncated_eigenvalue = 0
+        for eig_idx, e in enumerate(eigenvalues):
+            truncation_sum += e
+            first_truncated_eigenvalue += 1
 
-            for eig_idx, e in enumerate(eigenvalues):
-                truncation_sum += e
-                first_truncated_eigenvalue += 1
+            if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
+                break
+        
+        #truncation
+        truncated_U = u[:, :first_truncated_eigenvalue] # keep first r cols of U
 
-                if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
-                    break
-
-            #truncation
-            truncated_U = u[:, :first_truncated_eigenvalue] # keep first r cols of U
-
-            #store U
-            tree_tensor[layer, ind1, ind2] = truncated_U
-            
-        #compute new feature map
-        Phi = generate_new_phi(Phi, tree_tensor, layer)
-        #update number of local feature vectors for each image
-        iterates = iterates // 2 
-            
-    else: #Phi is no longer a tensor, it's a list of list because dimension t may differ
-        for i in range(iterates):
-            if i % 2 != 0: continue 
-            
-            #compute ro
-            ind1 = i
-            ind2 = i + 1
-            ro = reduced_covariance(Phi, ind1, ind2)
-            #print('reduced ro shape' +str(ro.shape))
-            #svd
-            u, s, v = np.linalg.svd(ro)
-            #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
-            #---------OLD eigenvalues = s**2
-            eigenvalues = s
-            trace = np.sum(eigenvalues)
-
-            truncation_sum = 0
-            # Gross notation, but makes indexing nicer
-            first_truncated_eigenvalue = 0
-
-            for eig_idx, e in enumerate(eigenvalues):
-                truncation_sum += e
-                first_truncated_eigenvalue += 1
-
-                if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
-                    break
-            
-            #truncation
-            truncated_U = u[:, :first_truncated_eigenvalue] # keep first r cols of U
-
-            #store U
-            tree_tensor[layer, ind1, ind2] = truncated_U
-            
-        #compute new feature map
-        Phi = generate_new_phi(Phi, tree_tensor, layer)
-        #update number of local feature vectors for each image
-        iterates = iterates // 2 
+        #store U
+        tree_tensor[layer, ind1, ind2] = truncated_U
+        
+    #compute new feature map
+    Phi = generate_new_phi(Phi, tree_tensor, layer)
+    #update number of local feature vectors for each image
+    iterates = iterates // 2 
     
     
 print(tree_tensor[4,0,1].shape)
