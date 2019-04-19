@@ -131,10 +131,7 @@ def custom_feature(data_loader, fake_img=True):
             Transform each pixel of each image to a vector of dimension 2 """
     
     #dimensions of feature tensor Phi
-    dim1 = N_FAKE_IMGS # len(data_loader) #number of images
-
-    if not fake_img:
-        dim1 = len(data_loader)
+    dim1 = len(data_loader) #number of images
 
     dim2 = HEIGHT * WIDTH
     dim3 = 2 
@@ -183,7 +180,7 @@ def reduced_covariance(Phi, s1, s2):
                     x = Phi[j, s, :]   
                     # outer_product = np.outer(x, x) 
                     # trace_tracker *= np.trace(outer_product)
-                    trace_tracker *= np.inner(x, x)
+                    trace_tracker += np.inner(x, x)
 
             #compute the order 4 tensor
             mat1 = np.outer(phi1, phi1) 
@@ -210,7 +207,7 @@ def reduced_covariance(Phi, s1, s2):
                 x = Phi[0][s]   
                 # outer_product = np.outer(x, x) 
                 # trace_tracker *= np.trace(outer_product)
-                trace_tracker *= np.inner(x, x)
+                trace_tracker += np.inner(x, x)
 
         #compute the order 4 tensor
         mat1 = np.outer(phi1, phi1) 
@@ -240,7 +237,7 @@ def reduced_covariance(Phi, s1, s2):
                     x = Phi[j][s]   
                     # outer_product = np.outer(x, x) 
                     # trace_tracker *= np.trace(outer_product)
-                    trace_tracker *= np.inner(x, x)
+                    trace_tracker += np.inner(x, x)
 
                     
             #compute the order 4 tensor
@@ -265,29 +262,27 @@ args = parser.parse_args()
 
 train_loader = None
 Phi = None
-# HEIGHT = None
-# WIDTH  = None
-# N_FAKE_IMGS  = None
 
 if not args.fake:
     # #test load mnist
     train_loader, _ = loadMnist()
+        
+    HEIGHT = 28
+    WIDTH = 28
 
     print('==>>> total trainning batch number: {}'.format(len(train_loader)))
     # print('==>>> total testing batch number: {}'.format(len(test_loader)))
 
     Phi = custom_feature(train_loader, fake_img=False)
     print(Phi.shape)
-    
-    HEIGHT = 28
-    WIDTH = 28
+
 
 else: 
 # # Fake images for faster testing
     N_FAKE_IMGS = 100
     HEIGHT = 8
     WIDTH = 8
-    
+
     np.random.seed(30)
     train_loader = np.random.random((N_FAKE_IMGS, 1, HEIGHT, WIDTH))
     #test feature map
