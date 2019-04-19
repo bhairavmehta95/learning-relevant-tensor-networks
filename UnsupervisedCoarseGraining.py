@@ -11,14 +11,9 @@ import torchvision
 from torchvision import transforms, utils
 import random
 import math
+import argparse
 
 
-N_FAKE_IMGS = 100
-HEIGHT = 32
-WIDTH = 32
-
-HEIGHT = 8
-WIDTH = 8
 
 FEATURE_MAP_D = 2
 TRUNCATION_EPS = 1e-3
@@ -29,7 +24,7 @@ def loadMnist(batch_size=1):
 
     #transform input/output to tensor
     transform = transforms.Compose([
-        transforms.Pad(2), # Makes 32x32, Log2(32) = 5  
+        # transforms.Pad(2), # Makes 32x32, Log2(32) = 5  
         transforms.ToTensor(),  
     ])
 
@@ -186,8 +181,9 @@ def reduced_covariance(Phi, s1, s2):
             for s in range(N):
                 if s != s1 and s != s2:
                     x = Phi[j, s, :]   
-                    outer_product = np.outer(x, x) 
-                    trace_tracker *= np.trace(outer_product)
+                    # outer_product = np.outer(x, x) 
+                    # trace_tracker *= np.trace(outer_product)
+                    trace_tracker *= np.inner(x, x)
 
             #compute the order 4 tensor
             mat1 = np.outer(phi1, phi1) 
@@ -212,8 +208,9 @@ def reduced_covariance(Phi, s1, s2):
         for s in range(N):
             if s != s1 and s != s2:
                 x = Phi[0][s]   
-                outer_product = np.outer(x, x) 
-                trace_tracker *= np.trace(outer_product)
+                # outer_product = np.outer(x, x) 
+                # trace_tracker *= np.trace(outer_product)
+                trace_tracker *= np.inner(x, x)
 
         #compute the order 4 tensor
         mat1 = np.outer(phi1, phi1) 
@@ -241,8 +238,10 @@ def reduced_covariance(Phi, s1, s2):
             for s in range(N):
                 if s != s1 and s != s2:
                     x = Phi[j][s]   
-                    outer_product = np.outer(x, x) 
-                    trace_tracker *= np.trace(outer_product)
+                    # outer_product = np.outer(x, x) 
+                    # trace_tracker *= np.trace(outer_product)
+                    trace_tracker *= np.inner(x, x)
+
                     
             #compute the order 4 tensor
             mat1 = np.outer(phi1, phi1) 
@@ -259,20 +258,40 @@ def reduced_covariance(Phi, s1, s2):
 
 ################################### Test ###############################################################
 
-# #test load mnist
-# train_loader, test_loader = loadMnist()
+parser = argparse.ArgumentParser()
+parser.add_argument("--fake", action="store_true")
 
-# print('==>>> total trainning batch number: {}'.format(len(train_loader)))
-# print('==>>> total testing batch number: {}'.format(len(test_loader)))
+args = parser.parse_args()
 
-# Phi = custom_feature(train_loader, fake_img=False)
-# print(Phi.shape)
+train_loader = None
+Phi = None
+# HEIGHT = None
+# WIDTH  = None
+# N_FAKE_IMGS  = None
 
+if not args.fake:
+    # #test load mnist
+    train_loader, _ = loadMnist()
+
+    print('==>>> total trainning batch number: {}'.format(len(train_loader)))
+    # print('==>>> total testing batch number: {}'.format(len(test_loader)))
+
+    Phi = custom_feature(train_loader, fake_img=False)
+    print(Phi.shape)
+    
+    HEIGHT = 28
+    WIDTH = 28
+
+else: 
 # # Fake images for faster testing
-np.random.seed(30)
-train_loader = np.random.random((N_FAKE_IMGS, 1, HEIGHT, WIDTH))
-#test feature map
-Phi = custom_feature(zip(train_loader, np.random.random(N_FAKE_IMGS)))
+    N_FAKE_IMGS = 100
+    HEIGHT = 8
+    WIDTH = 8
+    
+    np.random.seed(30)
+    train_loader = np.random.random((N_FAKE_IMGS, 1, HEIGHT, WIDTH))
+    #test feature map
+    Phi = custom_feature(zip(train_loader, np.random.random(N_FAKE_IMGS)))
 
 tree_depth = int(math.log2(HEIGHT * WIDTH)) -1
 iterates = HEIGHT * WIDTH
@@ -294,7 +313,7 @@ for layer in range(tree_depth):
         u, s, v = np.linalg.svd(ro)
         #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
         #---------OLD eigenvalues = s**2
-        eigenvalues = s
+        eigenvalues = s**2
         trace = np.sum(eigenvalues)
 
         truncation_sum = 0
@@ -307,6 +326,9 @@ for layer in range(tree_depth):
 
             if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
                 break
+
+        print(len(eigenvalues), first_truncated_eigenvalue)
+        print(trace)
         
         #truncation
         truncated_U = u[:, :first_truncated_eigenvalue] # keep first r cols of U
