@@ -11,14 +11,9 @@ import torchvision
 from torchvision import transforms, utils
 import random
 import math
+import argparse
 
 
-N_FAKE_IMGS = 100
-HEIGHT = 32
-WIDTH = 32
-
-HEIGHT = 8
-WIDTH = 8
 
 FEATURE_MAP_D = 2
 TRUNCATION_EPS = 1e-3
@@ -29,7 +24,7 @@ def loadMnist(batch_size=1):
 
     #transform input/output to tensor
     transform = transforms.Compose([
-        transforms.Pad(2), # Makes 32x32, Log2(32) = 5  
+        # transforms.Pad(2), # Makes 32x32, Log2(32) = 5  
         transforms.ToTensor(),  
     ])
 
@@ -72,13 +67,14 @@ def generate_new_phi(Phi, tree_tensor, layer):
 
                 #-------Apply U to image--------
                 #1- reshape u as a third order tensor
-                s = truncated_U.shape[0] //2
-                t = truncated_U.shape[1]
-                truncated_U = np.reshape(truncated_U, (s, s, t))
+                #s = truncated_U.shape[0] //2
+                #t = truncated_U.shape[1]
+                #truncated_U = np.reshape(truncated_U, (s, s, t))
                 #2- mode_1 (vector) product to get a matrix 
-                phi_reduced = np.dot(truncated_U.transpose(),x)
+                #phi_reduced = np.dot(truncated_U.transpose(),x)
                 #3- inner product to get a vector
-                phi_reduced = np.dot(phi_reduced,y)
+                phi_xy = np.outer(x,y).flatten()
+                phi_reduced = np.dot(truncated_U.T,phi_xy)
 
                 #append result to the new phi
                 coarse_grained.append(phi_reduced)
@@ -102,14 +98,15 @@ def generate_new_phi(Phi, tree_tensor, layer):
                 
                 #-------Apply U to image--------
                 #1- reshape u as a third order tensor
-                s1 = len(x)
-                s2 = len(y)
-                t = truncated_U.shape[1]
-                truncated_U = np.reshape(truncated_U, (s1, s2, t))
+                #s1 = len(x)
+                #s2 = len(y)
+                #t = truncated_U.shape[1]
+                #truncated_U = np.reshape(truncated_U, (s1, s2, t))
                 #2- mode_1 (vector) product to get a matrix 
-                phi_reduced = np.dot(truncated_U.transpose(),x)
+                #phi_reduced = np.dot(truncated_U.transpose(),x)
                 #3- inner product to get a vector
-                phi_reduced = np.dot(phi_reduced,y)
+                phi_xy = np.outer(x,y).flatten()
+                phi_reduced = np.dot(truncated_U.T,phi_xy)
                 #append result to the new phi
                 coarse_grained.append(phi_reduced)
 
@@ -128,6 +125,9 @@ def local_feature_vectors(vector):
     N = HEIGHT * WIDTH
     phi = np.ones((2, N))
     phi[1, :] = np.squeeze(vector)
+    norm = np.linalg.norm(phi, axis=0)
+    norm = norm.reshape((1,len(norm)))
+    phi /=norm
 
     return phi.T
 
@@ -136,10 +136,7 @@ def custom_feature(data_loader, fake_img=True):
             Transform each pixel of each image to a vector of dimension 2 """
     
     #dimensions of feature tensor Phi
-    dim1 = N_FAKE_IMGS # len(data_loader) #number of images
-
-    if not fake_img:
-        dim1 = len(data_loader)
+    dim1 = len(data_loader) #number of images
 
     dim2 = HEIGHT * WIDTH
     dim3 = 2 
@@ -186,16 +183,16 @@ def reduced_covariance(Phi, s1, s2):
             for s in range(N):
                 if s != s1 and s != s2:
                     x = Phi[j, s, :]   
-                    outer_product = np.outer(x, x) 
-                    trace_tracker *= np.trace(outer_product)
+                    # outer_product = np.outer(x, x) 
+                    # trace_tracker *= np.trace(outer_product)
+                    trace_tracker *= np.inner(x, x)
 
             #compute the order 4 tensor
-            mat1 = np.outer(phi1, phi1) 
-            mat2 = np.outer(phi2, phi2) 
-            ro_j = np.kron(mat1, mat2)
+            phi12 = np.outer(phi1, phi2).flatten() 
+            ro_j = np.outer(phi12,phi12)
             
             #add result to ro
-            ro += trace_tracker * ro_j
+            ro += trace_tracker*ro_j
         return ro / n_images
             
     #Phi is a list starting from the second layer
@@ -212,19 +209,19 @@ def reduced_covariance(Phi, s1, s2):
         for s in range(N):
             if s != s1 and s != s2:
                 x = Phi[0][s]   
-                outer_product = np.outer(x, x) 
-                trace_tracker *= np.trace(outer_product)
+                # outer_product = np.outer(x, x) 
+                trace_tracker *= np.inner(x,x)
+                # trace_tracker += np.inner(x, x)
 
         #compute the order 4 tensor
-        mat1 = np.outer(phi1, phi1) 
-        mat2 = np.outer(phi2, phi2) 
-        ro_j = np.kron(mat1, mat2)
+        phi12 = np.outer(phi1, phi2).flatten() 
+        ro_j = np.outer(phi12, phi12)
         
         d1 = ro_j.shape[0]
         d2 = ro_j.shape[1]
         n_images = 1
         
-        #compute the rest
+        #--------compute the rest
         ro = np.zeros((d1,d2))
         j = 1
         while True:
@@ -241,16 +238,17 @@ def reduced_covariance(Phi, s1, s2):
             for s in range(N):
                 if s != s1 and s != s2:
                     x = Phi[j][s]   
-                    outer_product = np.outer(x, x) 
-                    trace_tracker *= np.trace(outer_product)
+                    # outer_product = np.outer(x, x) 
+                    # trace_tracker *= np.trace(outer_product)
+                    trace_tracker *= np.inner(x, x)
+
                     
             #compute the order 4 tensor
-            mat1 = np.outer(phi1, phi1) 
-            mat2 = np.outer(phi2, phi2) 
-            ro_j = np.kron(mat1, mat2)
+            phi12 = np.outer(phi1, phi2).flatten()
+            ro_j = np.outer(phi12, phi12)
             
             #add result to ro
-            ro = ro + trace_tracker * ro_j
+            ro += trace_tracker*ro_j
             
             j += 1
             
@@ -259,20 +257,38 @@ def reduced_covariance(Phi, s1, s2):
 
 ################################### Test ###############################################################
 
-# #test load mnist
-# train_loader, test_loader = loadMnist()
+parser = argparse.ArgumentParser()
+parser.add_argument("--fake", action="store_true")
 
-# print('==>>> total trainning batch number: {}'.format(len(train_loader)))
-# print('==>>> total testing batch number: {}'.format(len(test_loader)))
+args = parser.parse_args()
 
-# Phi = custom_feature(train_loader, fake_img=False)
-# print(Phi.shape)
+train_loader = None
+Phi = None
 
+if not args.fake:
+    # #test load mnist
+    train_loader, _ = loadMnist()
+        
+    HEIGHT = 28
+    WIDTH = 28
+
+    print('==>>> total trainning batch number: {}'.format(len(train_loader)))
+    # print('==>>> total testing batch number: {}'.format(len(test_loader)))
+
+    Phi = custom_feature(train_loader, fake_img=False)
+    print(Phi.shape)
+
+
+else: 
 # # Fake images for faster testing
-np.random.seed(30)
-train_loader = np.random.random((N_FAKE_IMGS, 1, HEIGHT, WIDTH))
-#test feature map
-Phi = custom_feature(zip(train_loader, np.random.random(N_FAKE_IMGS)))
+    N_FAKE_IMGS = 100
+    HEIGHT = 8
+    WIDTH = 8
+
+    np.random.seed(30)
+    train_loader = np.random.random((N_FAKE_IMGS, 1, HEIGHT, WIDTH))
+    #test feature map
+    Phi = custom_feature(zip(train_loader, np.random.random(N_FAKE_IMGS)))
 
 tree_depth = int(math.log2(HEIGHT * WIDTH)) -1
 iterates = HEIGHT * WIDTH
@@ -291,25 +307,28 @@ for layer in range(tree_depth):
         ro = reduced_covariance(Phi, ind1, ind2)
         #print('reduced ro shape' +str(ro.shape))
         #svd
-        u, s, v = np.linalg.svd(ro)
+        e_val, U = np.linalg.eigh(ro) # eigenvalues arranged in ascending order
+        e_val, U = np.flip(e_val), np.flip(U, axis=1) # eigenvalues arranged in descending order
         #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
         #---------OLD eigenvalues = s**2
-        eigenvalues = s
-        trace = np.sum(eigenvalues)
+        trace = np.sum(e_val)
 
         truncation_sum = 0
         # Gross notation, but makes indexing nicer
         first_truncated_eigenvalue = 0
 
-        for eig_idx, e in enumerate(eigenvalues):
+        for eig_idx, e in enumerate(e_val):
             truncation_sum += e
             first_truncated_eigenvalue += 1
 
             if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
                 break
+
+        print(len(e_val), first_truncated_eigenvalue)
+        print(trace)
         
         #truncation
-        truncated_U = u[:, :first_truncated_eigenvalue] # keep first r cols of U
+        truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
 
         #store U
         tree_tensor[layer, ind1, ind2] = truncated_U
