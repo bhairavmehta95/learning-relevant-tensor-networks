@@ -318,9 +318,9 @@ for layer in range(tree_depth):
         e_val, U = np.flip(e_val), np.flip(U, axis=1) # eigenvalues arranged in descending order
         #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
         #---------OLD eigenvalues = s**2
-        #trace = np.sum(e_val)
-        eigenvalues = s**2
-        trace = np.sum(eigenvalues)
+        trace = np.sum(e_val)
+        #eigenvalues = s**2
+        #trace = np.sum(eigenvalues)
 
         truncation_sum = 0
         # Gross notation, but makes indexing nicer
