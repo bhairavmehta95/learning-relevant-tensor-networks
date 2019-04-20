@@ -333,9 +333,9 @@ for layer in range(tree_depth):
             if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
                 break
 
-        print(len(e_val), first_truncated_eigenvalue)
-        print(len(eigenvalues), first_truncated_eigenvalue)
-        print(trace)
+        #print(len(e_val), first_truncated_eigenvalue)
+        #print(len(eigenvalues), first_truncated_eigenvalue)
+        #print(trace)
         
         #truncation
         truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
