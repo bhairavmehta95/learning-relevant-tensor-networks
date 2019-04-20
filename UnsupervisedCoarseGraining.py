@@ -349,9 +349,14 @@ for layer in range(tree_depth):
     iterates = iterates // 2 
     
     
-#print(tree_tensor[4,0,1].shape)
-#print(type(tree_tensor[4,0,1]))
+print(tree_tensor[7,0,1].shape)
+print(type(tree_tensor[7,0,1]))
 
+#save result in file
+json = json.dumps(tree_tensor)
+f = open("treeU.json","w")
+f.write(json)
+f.close()
 """
 For each pair of indices,
 calculate ro
