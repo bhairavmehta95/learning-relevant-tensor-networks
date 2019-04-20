@@ -185,11 +185,9 @@ def reduced_covariance(Phi, s1, s2):
                     x = Phi[j, s, :]   
                     # outer_product = np.outer(x, x) 
                     # trace_tracker *= np.trace(outer_product)
-<<<<<<< HEAD
                     trace_tracker *= np.inner(x, x)
-=======
-                    trace_tracker += np.inner(x, x)
->>>>>>> c14565ea495b68d24cf54ea877afb986cd61fa8a
+                    #trace_tracker += np.inner(x, x)
+
 
             #compute the order 4 tensor
             phi12 = np.outer(phi1, phi2).flatten() 
@@ -214,24 +212,23 @@ def reduced_covariance(Phi, s1, s2):
             if s != s1 and s != s2:
                 x = Phi[0][s]   
                 # outer_product = np.outer(x, x) 
-<<<<<<< HEAD
                 trace_tracker *= np.inner(x,x)
                 # trace_tracker += np.inner(x, x)
-=======
-                # trace_tracker *= np.trace(outer_product)
-                trace_tracker += np.inner(x, x)
->>>>>>> c14565ea495b68d24cf54ea877afb986cd61fa8a
+                #trace_tracker *= np.trace(outer_product)
+                #trace_tracker += np.inner(x, x)
+
 
         #compute the order 4 tensor
         phi12 = np.outer(phi1, phi2).flatten() 
         ro_j = np.outer(phi12, phi12)
         
-        d1 = ro_j.shape[0]
-        d2 = ro_j.shape[1]
+        #d1 = ro_j.shape[0]
+        #d2 = ro_j.shape[1]
         n_images = 1
         
         #--------compute the rest
-        ro = np.zeros((d1,d2))
+        #ro = np.zeros((d1,d2))
+        ro = trace_tracker*ro_j;
         j = 1
         while True:
             if j == Nt: break
@@ -249,11 +246,8 @@ def reduced_covariance(Phi, s1, s2):
                     x = Phi[j][s]   
                     # outer_product = np.outer(x, x) 
                     # trace_tracker *= np.trace(outer_product)
-<<<<<<< HEAD
                     trace_tracker *= np.inner(x, x)
-=======
-                    trace_tracker += np.inner(x, x)
->>>>>>> c14565ea495b68d24cf54ea877afb986cd61fa8a
+                    #trace_tracker += np.inner(x, x)
 
                     
             #compute the order 4 tensor
@@ -324,12 +318,9 @@ for layer in range(tree_depth):
         e_val, U = np.flip(e_val), np.flip(U, axis=1) # eigenvalues arranged in descending order
         #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
         #---------OLD eigenvalues = s**2
-<<<<<<< HEAD
-        trace = np.sum(e_val)
-=======
+        #trace = np.sum(e_val)
         eigenvalues = s**2
         trace = np.sum(eigenvalues)
->>>>>>> c14565ea495b68d24cf54ea877afb986cd61fa8a
 
         truncation_sum = 0
         # Gross notation, but makes indexing nicer
@@ -342,11 +333,8 @@ for layer in range(tree_depth):
             if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
                 break
 
-<<<<<<< HEAD
         print(len(e_val), first_truncated_eigenvalue)
-=======
         print(len(eigenvalues), first_truncated_eigenvalue)
->>>>>>> c14565ea495b68d24cf54ea877afb986cd61fa8a
         print(trace)
         
         #truncation
