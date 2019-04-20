@@ -349,8 +349,8 @@ for layer in range(tree_depth):
     iterates = iterates // 2 
     
     
-print(tree_tensor[4,0,1].shape)
-print(type(tree_tensor[4,0,1]))
+#print(tree_tensor[4,0,1].shape)
+#print(type(tree_tensor[4,0,1]))
 
 """
 For each pair of indices,
