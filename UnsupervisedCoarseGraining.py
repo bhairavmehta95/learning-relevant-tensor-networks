@@ -298,7 +298,7 @@ else:
     #test feature map
     Phi = custom_feature(zip(train_loader, np.random.random(N_FAKE_IMGS)))
 
-tree_depth = int(math.log2(HEIGHT * WIDTH)) -1
+tree_depth = int(math.log2(HEIGHT * WIDTH)) 
 iterates = HEIGHT * WIDTH
 
 tree_tensor = dict()
