@@ -13,7 +13,7 @@ import random
 import math
 import argparse
 import json
-
+import pandas as pd
 
 
 
@@ -26,7 +26,7 @@ def loadMnist(batch_size=1):
 
     #transform input/output to tensor
     transform = transforms.Compose([
-        # transforms.Pad(2), # Makes 32x32, Log2(32) = 5  
+        transforms.Pad(2), # Makes 32x32, Log2(32) = 5  
         transforms.ToTensor(),  
     ])
 
@@ -278,8 +278,8 @@ if not args.fake:
     # #test load mnist
     train_loader, _ = loadMnist()
         
-    HEIGHT = 28
-    WIDTH = 28
+    HEIGHT = 32
+    WIDTH = 32
 
     print('==>>> total trainning batch number: {}'.format(len(train_loader)))
     # print('==>>> total testing batch number: {}'.format(len(test_loader)))
@@ -351,14 +351,16 @@ for layer in range(tree_depth):
     iterates = iterates // 2 
     
     
-print(tree_tensor[7,0,1].shape)
-print(type(tree_tensor[7,0,1]))
+print(tree_tensor[8,0,1].shape)
+print('Shape of the last layer: '+str(tree_tensor[8,0,1].shape))
 
 #save result in file
-json = json.dumps(tree_tensor)
-f = open("treeU.json","w")
-f.write(json)
-f.close()
+np.savetxt("treeU.csv", tree_tensor[8,0,1], delimiter=",")
+
+#read it back
+print('Reading the file: treeU.csv')
+df=np.genfromtxt('treeU.csv',delimiter=',')
+print('Shape of the last layer: '+str(df.shape))
 """
 For each pair of indices,
 calculate ro
