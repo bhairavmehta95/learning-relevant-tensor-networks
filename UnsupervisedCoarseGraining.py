@@ -13,7 +13,7 @@ import random
 import math
 import argparse
 import json
-
+import pickle
 
 
 FEATURE_MAP_D = 2
@@ -351,15 +351,14 @@ for layer in range(tree_depth):
     
     
 print(tree_tensor[8,0,1].shape)
-print('Shape of the last layer: '+str(tree_tensor[8,0,1].shape))
+with open("treeU", "wb") as file:
+    pickle.dump(tree_tensor, file)
 
-#save result in file
-np.savetxt("treeU.csv", tree_tensor[8,0,1], delimiter=",")
-
-#read it back
-print('Reading the file: treeU.csv')
-df=np.genfromtxt('treeU.csv',delimiter=',')
-print('Shape of the last layer: '+str(df.shape))
+#read
+with open("treeU", "rb") as file:
+    tree=pickle.load(file)
+print(type(tree))
+print(tree[8,0,1].shape)
 """
 For each pair of indices,
 calculate ro
