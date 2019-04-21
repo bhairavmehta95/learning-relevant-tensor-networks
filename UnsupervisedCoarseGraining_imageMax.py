@@ -266,7 +266,7 @@ train_loader, _ = loadMnist()
 
 HEIGHT = 32
 WIDTH = 32
-N_MAX = 1000
+N_MAX = 200
 print('==>>> total trainning batch number: {}'.format(len(train_loader)))
 # print('==>>> total testing batch number: {}'.format(len(test_loader)))
 
