@@ -325,11 +325,11 @@ for layer in range(tree_depth):
     iterates = iterates // 2 
 
 print(tree_tensor[8,0,1].shape)
-with open("treeU", "wb") as file:
+with open("treeU_max", "wb") as file:
     pickle.dump(tree_tensor, file)
 
 #read
-with open("treeU", "rb") as file:
+with open("treeU_max", "rb") as file:
     tree=pickle.load(file)
 print(type(tree))
 print(tree[8,0,1].shape)
