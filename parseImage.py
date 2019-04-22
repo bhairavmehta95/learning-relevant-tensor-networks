@@ -24,11 +24,8 @@ class ParseImage:
             vector representing the image 
         """
         image = self.image
-        
-        #get dimensions
-        m, n = image.shape
-        
-        image_vector = image.reshape(1, n*m)
+          
+        image_vector = image.flatten()
         
         return image_vector
     
@@ -40,11 +37,8 @@ class ParseImage:
         """
         image = self.image
         
-        #get dimensions
-        m, n = image.shape
-        
         image = torch.transpose(image,0,1)
-        image_vector = image.reshape(1, n*m)
+        image_vector = image.flatten()
         
         return image_vector
         
@@ -60,7 +54,7 @@ class ParseImage:
         m, n = image.shape
         
         #initialize
-        image_vector = torch.zeros(1, n*m)
+        image_vector = torch.zeros(n*m)
         
         #begin spiral
         k = 0
@@ -70,14 +64,14 @@ class ParseImage:
             # add the first row from 
             # the remaining rows  
             for i in range(l, n) : 
-                image_vector[0, index] = image[k,i]
+                image_vector[index] = image[k,i]
                 index = index + 1
             k += 1
             
             # add the last column from 
             # the remaining columns  
             for i in range(k, m) : 
-                image_vector[0, index] = image[i,(n - 1)]
+                image_vector[index] = image[i,(n - 1)]
                 index = index + 1
             n -= 1
             
@@ -85,7 +79,7 @@ class ParseImage:
             # the remaining rows  
             if ( k < m) : 
                 for i in range(n - 1, (l - 1), -1) :
-                    image_vector[0, index] = image[(m - 1),i]
+                    image_vector[index] = image[(m - 1),i]
                     index = index + 1
                 m -= 1
          
@@ -93,7 +87,7 @@ class ParseImage:
             # the remaining columns  
             if (l < n) : 
                 for i in range(m - 1, k - 1, -1) :
-                    image_vector[0, index] = image[i,l] 
+                    image_vector[index] = image[i,l] 
                     index = index + 1
                 l += 1
         
@@ -101,9 +95,7 @@ class ParseImage:
         
     def blockParser(self, window_dimension = 2):
         """ 
-        Parse a square image by block.
-        INPUT:
-        	window_dimension: (int) parse the image in block of size (window_dimension x window_dimension)
+        Parse a square image in spiral.
         OUTPUT:
             vector representing the image 
         """
@@ -113,7 +105,7 @@ class ParseImage:
         m, n = image.shape
         
         #initialize
-        image_vector = torch.zeros(1, n*m)
+        image_vector = torch.zeros(n*m)
         
         #begin block
         i = 0
@@ -121,7 +113,7 @@ class ParseImage:
         for row in range(int(m/window_dimension)):
             j = 0
             for column in range(int(n/window_dimension)):
-                image_vector[0, index:(index+window_dimension**2)] = image[i:i+window_dimension,j:j+window_dimension].reshape(1, window_dimension**2)
+                image_vector[index:(index+window_dimension**2)] = image[i:i+window_dimension,j:j+window_dimension].flatten()
                 j = j+window_dimension
                 index = index + window_dimension**2
             i = i+window_dimension
