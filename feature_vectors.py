@@ -14,19 +14,19 @@ def local_feature_vectors(vector):
 
     return phi.T
 
-def custom_feature(data_loader, fake_img=True):
+def custom_feature(data_loader, batch_size, fake_img=True):
     """ For each image: 
             Transform each pixel of each image to a vector of dimension 2 """
     
     #dimensions of feature tensor Phi
-    dim1 = args.batch_size #number of images
+    dim1 = batch_size #number of images
     dim2 = HEIGHT * WIDTH
     dim3 = FEATURE_MAP_D 
     
     Phi = np.zeros((dim1, dim2, dim3))
    
     for batch_idx, (x, target) in enumerate(data_loader):
-        if batch_idx == args.batch_size:
+        if batch_idx == batch_size:
             break
         image = x[0, 0, :, :]
         image = image.flatten() #vectorize the image

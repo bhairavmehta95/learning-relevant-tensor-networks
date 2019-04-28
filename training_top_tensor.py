@@ -17,31 +17,9 @@ import pickle
 from sklearn.linear_model import LogisticRegression
 
 from datasets.mnist_utils import load_mnist
-from feature_vectors import local_feature_vectors
+from feature_vectors import local_feature_vectors, custom_feature
 
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
-
-def custom_feature(data_loader, fake_img=True):
-    """ For each image: 
-            Transform each pixel of each image to a vector of dimension 2 """
-    
-    #dimensions of feature tensor Phi
-    dim1 = N_MAX #number of images
-
-    dim2 = HEIGHT * WIDTH
-    dim3 = 2 
-    
-    Phi = np.zeros((dim1, dim2, dim3))
-   
-    for batch_idx, (x, target) in enumerate(data_loader):
-        if batch_idx == N_MAX:
-            break
-        image = x[0, 0, :, :]
-        image = image.flatten() #vectorize the image
-        image = local_feature_vectors(image)
-        Phi[batch_idx, :, :] = image
-    
-    return Phi
 
 
 def generate_new_phi(Phi, tree_tensor, layer):

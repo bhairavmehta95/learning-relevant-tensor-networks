@@ -58,7 +58,7 @@ def reduced_covariance(Phi, s1, s2):
     Nt = len(Phi)     #number of images
     N = len(Phi[0])       #number of local features vectors in Phi
        
-    ro = None
+    rho = None
     trace_tracker = 1
 
     for img_idx in range(Nt):
@@ -76,84 +76,12 @@ def reduced_covariance(Phi, s1, s2):
                 
         #compute the order 4 tensor
         phi12 = np.outer(phi1, phi2).flatten()
-        ro_j = np.outer(phi12, phi12)
+        rho_j = np.outer(phi12, phi12)
         
-        #add result to ro
-        if ro is None:
-            ro = np.zeros_like(ro_j)
+        #add result to rho
+        if rho is None:
+            rho = np.zeros_like(rho_j)
 
-        ro += trace_tracker*ro_j
+        rho += trace_tracker*rho_j
         
-    return ro / Nt
-
-
-################################### Test ###############################################################
-parser = argparse.ArgumentParser(description='Learning Relevant Features (Stoudemire 2018)')
-parser.add_argument('--eps', type=float, default=1e-3, help='Truncation epsilon')
-parser.add_argument('--batch-size', type=int, default=512, help='Batch size for MNIST')
-parser.add_argument('--seed', type=int, default=123, help='Seed')
-
-args = parser.parse_args()
-
-np.random.seed(args.seed)
-torch.manual_seed(args.seed)
-
-train_loader, _ = load_mnist()
-
-print('Size of train_loader: {}'.format(len(train_loader)))
-
-Phi = custom_feature(train_loader, fake_img=False)
-print('Size of initial Phi: {}'.format(Phi.shape))
-
-tree_depth = int(math.log2(HEIGHT * WIDTH)) 
-iterates = HEIGHT * WIDTH
-
-tree_tensor = dict()
-
-for layer in range(tree_depth):
-    print('\n-------> layer: '+str(layer))
-    print('iterates = '+str(iterates))
-    for i in range(iterates):
-        if i % 2 != 0: continue 
-        
-        #compute ro
-        ind1 = i
-        ind2 = i + 1
-        ro = reduced_covariance(Phi, ind1, ind2)
-
-        # Calculate Eigenvalues
-        e_val, U = np.linalg.eigh(ro) # eigenvalues arranged in ascending order
-        e_val, U = np.flip(e_val), np.flip(U, axis=1) # eigenvalues arranged in descending order
-        trace = np.sum(e_val)
-
-        truncation_sum = 0
-        # Gross notation, but makes indexing nicer
-        first_truncated_eigenvalue = 0
-
-        for eig_idx, e in enumerate(e_val):
-            truncation_sum += e
-            first_truncated_eigenvalue += 1
-
-            if (truncation_sum / trace) > (1 - args.eps):
-                break
-        
-        # truncation
-        truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
-
-        # store U
-        tree_tensor[layer, ind1, ind2] = truncated_U
-        
-    #compute new feature map
-    Phi = generate_new_phi(Phi, tree_tensor, layer)
-    #update number of local feature vectors for each image
-    iterates = iterates // 2 
-
-print(tree_tensor[8,0,1].shape)
-with open("treeU_max", "wb") as file:
-    pickle.dump(tree_tensor, file)
-
-#read
-with open("treeU_max", "rb") as file:
-    tree=pickle.load(file)
-print(type(tree))
-print(tree[8,0,1].shape)
+    return rho / Nt
