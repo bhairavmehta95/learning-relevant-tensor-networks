@@ -42,6 +42,7 @@ def loadMnist(batch_size=1):
                     dataset=test_set,
                     batch_size=batch_size,
                     shuffle=False)
+
     return [train_loader, test_loader] 
 
 
@@ -49,73 +50,40 @@ def generate_new_phi(Phi, tree_tensor, layer):
     
     print('   ----> generate new phi: ')
     Phi_new = [] #layer 0: list because the dimension of each d may differt. so we can't have a tensor of (100,32,d)
+     
+    iterates = Phi.shape[1]  #layer0: Phi(100,8*8,2) 
     
-    #Phi is a tensor as in the case for the first layer
-    if type(Phi) is np.ndarray:      
-        iterates = Phi.shape[1]  #layer0: Phi(100,8*8,2) 
-        
-        for imageidx, image in enumerate(Phi):
-            coarse_grained = []
-            i = 0
-            while True: #go from o to 32 reduced vectors of Phi(image)
-                if i == iterates: break 
-                ind1 = i 
-                ind2 = i + 1
-                x = Phi[imageidx, ind1, :] #local feature vector1 type: numpy.ndarray
-                y = Phi[imageidx, ind2, :] #local feature vector2
-                truncated_U = tree_tensor[layer, ind1, ind2] #get layer of isometries
+    for imageidx, image in enumerate(Phi):
+        coarse_grained = []
+        i = 0
+        while True: #go from o to 32 reduced vectors of Phi(image)
+            if i == iterates: break 
+            ind1 = i 
+            ind2 = i + 1
+            x = Phi[imageidx, ind1, :] #local feature vector1 type: numpy.ndarray
+            y = Phi[imageidx, ind2, :] #local feature vector2
+            truncated_U = tree_tensor[layer, ind1, ind2] #get layer of isometries
 
-                #-------Apply U to image--------
-                #1- reshape u as a third order tensor
-                #s = truncated_U.shape[0] //2
-                #t = truncated_U.shape[1]
-                #truncated_U = np.reshape(truncated_U, (s, s, t))
-                #2- mode_1 (vector) product to get a matrix 
-                #phi_reduced = np.dot(truncated_U.transpose(),x)
-                #3- inner product to get a vector
-                phi_xy = np.outer(x,y).flatten()
-                phi_reduced = np.dot(truncated_U.T,phi_xy)
+            #-------Apply U to image--------
+            #1- reshape u as a third order tensor
+            #s = truncated_U.shape[0] //2
+            #t = truncated_U.shape[1]
+            #truncated_U = np.reshape(truncated_U, (s, s, t))
+            #2- mode_1 (vector) product to get a matrix 
+            #phi_reduced = np.dot(truncated_U.transpose(),x)
+            #3- inner product to get a vector
+            phi_xy = np.outer(x,y).flatten()
+            phi_reduced = np.dot(truncated_U.T,phi_xy)
 
-                #append result to the new phi
-                coarse_grained.append(phi_reduced)
+            #append result to the new phi
+            coarse_grained.append(phi_reduced)
 
-                i +=2
-            Phi_new.append(np.array(coarse_grained))
-            
-    #Phi is a tensor starting from the second layer     
-    elif type(Phi) is list:
-        iterates = len(Phi[0])  #layer1 len(Phi[0][0])=32
-        for imageidx in range(len(Phi)):
-            coarse_grained = []
-            i = 0
-            while True: #go from o to 32 reduced vectors of Phi(image)
-                if i == iterates: break 
-                ind1 = i 
-                ind2 = i + 1
-                x = Phi[imageidx][ind1] #local feature vector1 type: numpy.ndarray
-                y = Phi[imageidx][ind2] #local feature vector2
-                truncated_U = tree_tensor[layer, ind1, ind2] #get layer of isometries
-                
-                #-------Apply U to image--------
-                #1- reshape u as a third order tensor
-                #s1 = len(x)
-                #s2 = len(y)
-                #t = truncated_U.shape[1]
-                #truncated_U = np.reshape(truncated_U, (s1, s2, t))
-                #2- mode_1 (vector) product to get a matrix 
-                #phi_reduced = np.dot(truncated_U.transpose(),x)
-                #3- inner product to get a vector
-                phi_xy = np.outer(x,y).flatten()
-                phi_reduced = np.dot(truncated_U.T,phi_xy)
-                #append result to the new phi
-                coarse_grained.append(phi_reduced)
-
-                i +=2
-            Phi_new.append(np.array(coarse_grained))
-        
+            i +=2
+        Phi_new.append(np.array(coarse_grained))
+                    
     print('     ---> new Phi: N=' + str(len(Phi_new[0])))
     print('   ----> END generate new phi: ')
-    return Phi_new
+    return np.array(Phi_new)
 
 
 def local_feature_vectors(vector):
@@ -156,111 +124,40 @@ def custom_feature(data_loader, fake_img=True):
 
 def reduced_covariance(Phi, s1, s2):
     """ Compute the reduced covariance matrix given the two position (s1,s2) in feature matrix of an image.
-        Example: to compute the reduced covariance matrix ro34, s1=2 and s2=3"""
-    
-    #Phi is a tensor as in the case for the first layer
-    if type(Phi) is np.ndarray: 
-        Nt = Phi.shape[0]      #number of images
-        N = Phi.shape[1]       #number of local features vectors in Phi
-        d = FEATURE_MAP_D
+        Example: to compute the reduced covariance matrix ro34, s1=2 and s2=3""" 
+    Nt = Phi.shape[0]      #number of images
+    N = Phi.shape[1]       #number of local features vectors in Phi
+    d = FEATURE_MAP_D
 
-        ro = np.zeros((d**2,d**2))
+    ro = np.zeros((d**2,d**2))
 
-        n_images = 0
-        for j in range(Nt):
-            if j == 1000: #compute the reduced covariance matrix using 1000 images
-                break
+    n_images = 0
+    for j in range(Nt):
+        if j == 1000: #compute the reduced covariance matrix using 1000 images
+            break
 
-            n_images += 1
-            
-            #get the two local feature vectors 
-            phi1 = Phi[j, s1, :]
-            phi2 = Phi[j, s2, :]
-
-            #trace over all the indices except s1 and s2 
-            trace_tracker = 1
-            for s in range(N):
-                if s != s1 and s != s2:
-                    x = Phi[j, s, :]   
-                    # outer_product = np.outer(x, x) 
-                    # trace_tracker *= np.trace(outer_product)
-                    trace_tracker *= np.inner(x, x)
-                    #trace_tracker += np.inner(x, x)
-
-
-            #compute the order 4 tensor
-            phi12 = np.outer(phi1, phi2).flatten() 
-            ro_j = np.outer(phi12,phi12)
-            
-            #add result to ro
-            ro += trace_tracker*ro_j
-        return ro / n_images
-            
-    #Phi is a list starting from the second layer
-    elif type(Phi) is list:
-        Nt = len(Phi)     #number of images
-        N = len(Phi[0])       #number of local features vectors in Phi
+        n_images += 1
         
-        #---------get d1 and d2
         #get the two local feature vectors 
-        phi1 = Phi[0][s1]
-        phi2 = Phi[0][s2]
-        #trace over all the indices except s1 and s2
+        phi1 = Phi[j, s1, :]
+        phi2 = Phi[j, s2, :]
+
+        #trace over all the indices except s1 and s2 
         trace_tracker = 1
         for s in range(N):
             if s != s1 and s != s2:
-                x = Phi[0][s]   
-                # outer_product = np.outer(x, x) 
-                trace_tracker *= np.inner(x,x)
-                # trace_tracker += np.inner(x, x)
-                #trace_tracker *= np.trace(outer_product)
-                #trace_tracker += np.inner(x, x)
-
+                x = Phi[j, s, :]   
+                trace_tracker *= np.inner(x, x)
 
         #compute the order 4 tensor
         phi12 = np.outer(phi1, phi2).flatten() 
-        ro_j = np.outer(phi12, phi12)
+        ro_j = np.outer(phi12,phi12)
         
-        #d1 = ro_j.shape[0]
-        #d2 = ro_j.shape[1]
-        n_images = 1
-        
-        #--------compute the rest
-        #ro = np.zeros((d1,d2))
-        ro = trace_tracker*ro_j;
-        j = 1
-        while True:
-            if j == Nt: break
-                
-            n_images += 1
-            
-            #get the two local feature vectors 
-            phi1 = Phi[j][s1]
-            phi2 = Phi[j][s2]
-            
-            #trace over all the indices except s1 and s2
-            trace_tracker = 1
-            for s in range(N):
-                if s != s1 and s != s2:
-                    x = Phi[j][s]   
-                    # outer_product = np.outer(x, x) 
-                    # trace_tracker *= np.trace(outer_product)
-                    trace_tracker *= np.inner(x, x)
-                    #trace_tracker += np.inner(x, x)
+        #add result to ro
+        ro += trace_tracker*ro_j
 
-                    
-            #compute the order 4 tensor
-            phi12 = np.outer(phi1, phi2).flatten()
-            ro_j = np.outer(phi12, phi12)
+    return np.array(ro) / n_images
             
-            #add result to ro
-            ro += trace_tracker*ro_j
-            
-            j += 1
-            
-        return ro / n_images
-
-
 ################################### Test ###############################################################
 train_loader, _ = loadMnist()
 
@@ -292,11 +189,7 @@ for layer in range(tree_depth):
         #svd
         e_val, U = np.linalg.eigh(ro) # eigenvalues arranged in ascending order
         e_val, U = np.flip(e_val), np.flip(U, axis=1) # eigenvalues arranged in descending order
-        #print("indices: ({}, {})\nU\n{}\nS{}\nV{}\n".format(ind1, ind2, u, s, v))
-        #---------OLD eigenvalues = s**2
         trace = np.sum(e_val)
-        #eigenvalues = s**2
-        #trace = np.sum(eigenvalues)
 
         truncation_sum = 0
         # Gross notation, but makes indexing nicer
@@ -308,10 +201,6 @@ for layer in range(tree_depth):
 
             if (truncation_sum / trace) > (1 - TRUNCATION_EPS):
                 break
-
-        #print(len(e_val), first_truncated_eigenvalue)
-        #print(len(eigenvalues), first_truncated_eigenvalue)
-        #print(trace)
         
         #truncation
         truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
@@ -333,12 +222,3 @@ with open("treeU_max", "rb") as file:
     tree=pickle.load(file)
 print(type(tree))
 print(tree[8,0,1].shape)
-
-"""
-For each pair of indices,
-calculate ro
-svd
-truncation 
-store U
-"""
-

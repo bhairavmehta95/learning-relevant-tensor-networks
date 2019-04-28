@@ -184,11 +184,7 @@ def reduced_covariance(Phi, s1, s2):
             for s in range(N):
                 if s != s1 and s != s2:
                     x = Phi[j, s, :]   
-                    # outer_product = np.outer(x, x) 
-                    # trace_tracker *= np.trace(outer_product)
                     trace_tracker *= np.inner(x, x)
-                    #trace_tracker += np.inner(x, x)
-
 
             #compute the order 4 tensor
             phi12 = np.outer(phi1, phi2).flatten() 
