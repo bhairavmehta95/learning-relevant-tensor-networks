@@ -83,7 +83,9 @@ if __name__ == '__main__':
     print(logreg.score(X, y))
 
     # TODO: @TAYSSIR: PLEASE ADD YOUR TEST CODE
+    n_test = len(test_loader) #number of images in the test set
     #-------Evaluate the model on the test set
+    Phi = custom_feature(test_loader, n_test, args.parser_type, fake_img=False) 
     print('*** Evaluation on the test set ***')
     #1-compute the reduced feature map
     for layer in range(tree_depth):
@@ -92,8 +94,6 @@ if __name__ == '__main__':
         iterates = iterates // 2 
 
     #2-construct new database representing the test data
-    Phi = custom_feature(test_loader, args.batch_size, args.parser_type, fake_img=False)
-    n_test = len(test_loader) #number of images in the test set
     #images
     t1 = Phi[0].shape[0]
     t2 = Phi[0].shape[1]
