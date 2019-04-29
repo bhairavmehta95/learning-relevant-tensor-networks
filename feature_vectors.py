@@ -1,6 +1,6 @@
 import numpy as np
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
-from parse_image import ParseImage
+from parse_image import ImageParser
 
 def local_feature_vectors(vector):
     """ Transform a vector representing an image to a matrix where the first row=[1,1,...,1] 
@@ -31,7 +31,7 @@ def custom_feature(data_loader, batch_size, parser_type='default', fake_img=True
             break
         image = x[0, 0, :, :]
 
-        parser = parseImage.ParseImage(image, parser_type)
+        parser = ImageParser(image, parser_type)
         image = parser.parse()
         image = image.flatten() #vectorize the image
         

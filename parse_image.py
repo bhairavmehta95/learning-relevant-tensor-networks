@@ -12,20 +12,19 @@ from torchvision import transforms, utils
 import random
 
 
-class ParseImage:
+class ImageParser:
     """Class: Provide different functions to parse an image represented as a 2D tensor."""
     def __init__(self, image, parser_type='default'):
         self.image = image
-        self.parse = default
 
         if parser_type == 'column':
-            self.parse = columnParser
+            self.parse = self.columnParser
         elif parser_type == 'spiral':
-            self.parse = spiralParser
+            self.parse = self.spiralParser
         elif parser_type == 'block':
-            self.parse = blockParser
-        else:
-            self.parse = default
+            self.parse = self.blockParser
+        else: # row or default
+            self.parse = self.default
         
     def default(self):
         """ 
