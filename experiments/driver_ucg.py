@@ -26,6 +26,7 @@ from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Learning Relevant Features (Stoudemire 2018)')
     parser.add_argument('--logdir', type=str, default='saved-models/', help='default log directory')
+    parser.add_argument('--parser_type', type=str, default='default', help='image parser')
     parser.add_argument('--eps', type=float, default=1e-3, help='Truncation epsilon')
     parser.add_argument('--batch-size', type=int, default=512, help='Batch size for MNIST')
     parser.add_argument('--seed', type=int, default=123, help='Seed')
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     train_loader, _ = load_mnist()
-    Phi = custom_feature(train_loader, args.batch_size, fake_img=False)
+    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
 
     print('Size of train_loader: {}'.format(len(train_loader)))
     print('Size of initial Phi: {}'.format(Phi.shape))

@@ -1,5 +1,6 @@
 import numpy as np
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
+from parse_image import ParseImage
 
 def local_feature_vectors(vector):
     """ Transform a vector representing an image to a matrix where the first row=[1,1,...,1] 
@@ -14,7 +15,7 @@ def local_feature_vectors(vector):
 
     return phi.T
 
-def custom_feature(data_loader, batch_size, fake_img=True):
+def custom_feature(data_loader, batch_size, parser_type='default', fake_img=True):
     """ For each image: 
             Transform each pixel of each image to a vector of dimension 2 """
     
@@ -29,7 +30,11 @@ def custom_feature(data_loader, batch_size, fake_img=True):
         if batch_idx == batch_size:
             break
         image = x[0, 0, :, :]
+
+        parser = parseImage.ParseImage(image, parser_type)
+        image = parser.parse()
         image = image.flatten() #vectorize the image
+        
         image = local_feature_vectors(image)
         Phi[batch_idx, :, :] = image
 

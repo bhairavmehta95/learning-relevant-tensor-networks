@@ -26,6 +26,7 @@ from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Learning Relevant Features (Stoudemire 2018)')
     parser.add_argument('--logdir', type=str, default='saved-models/', help='default log directory')
+    parser.add_argument('--parser_type', type=str, default='default', help='image parser')
     parser.add_argument('--filename', type=str, default='TODO', help='default file to load')
     parser.add_argument('--eps', type=float, default=1e-3, help='Truncation epsilon')
     parser.add_argument('--batch-size', type=int, default=512, help='Batch size for MNIST')
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     train_loader, test_loader = load_mnist()
-    Phi = custom_feature(train_loader, args.batch_size, fake_img=False)
+    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
 
     with open(os.path.join(args.logdir, args.filename), "rb") as file:
         U = pickle.load(file)

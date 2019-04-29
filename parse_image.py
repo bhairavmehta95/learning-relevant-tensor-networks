@@ -14,8 +14,18 @@ import random
 
 class ParseImage:
     """Class: Provide different functions to parse an image represented as a 2D tensor."""
-    def __init__(self, image):
+    def __init__(self, image, parser_type='default'):
         self.image = image
+        self.parse = default
+
+        if parser_type == 'column':
+            self.parse = columnParser
+        elif parser_type == 'spiral':
+            self.parse = spiralParser
+        elif parser_type == 'block':
+            self.parse = blockParser
+        else:
+            self.parse = default
         
     def default(self):
         """ 
@@ -28,6 +38,7 @@ class ParseImage:
         image_vector = image.flatten()
         
         return image_vector
+
     
     def columnParser(self):
         """ 
@@ -93,12 +104,15 @@ class ParseImage:
         
         return image_vector
         
-    def blockParser(self, window_dimension = 2):
+    def blockParser(self):
         """ 
         Parse a square image in spiral.
         OUTPUT:
             vector representing the image 
         """
+
+        window_dimension = 2
+
         image = self.image
         
         #get dimensions
