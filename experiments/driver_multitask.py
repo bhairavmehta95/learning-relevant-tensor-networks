@@ -34,6 +34,8 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     train_loader, _ = load_mnist()
+
+    # two Phis
     Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
 
     print('Size of train_loader: {}'.format(len(train_loader)))
@@ -50,6 +52,8 @@ if __name__ == '__main__':
     with multiprocessing.Pool(processes=args.nworkers) as pool:
         for layer in range(tree_depth):
             print('Layer: {}, Iterates: {}'.format(layer, iterates))
+
+            # change here
             traces = precalculate_traces(Phi)
             print('Traces shape: {}'.format(traces.shape))
 

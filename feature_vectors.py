@@ -1,6 +1,6 @@
 import numpy as np
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
-from parse_image import ImageParser
+from datasets.parse_image import ImageParser
 
 def local_feature_vectors(vector):
     """ Transform a vector representing an image to a matrix where the first row=[1,1,...,1] 

@@ -47,12 +47,12 @@ def load_mnist(labels_list=[], batch_size=1):
                      	dataset=train_set,
                      	batch_size=batch_size,
                      	sampler=SubsetRandomSampler(train_indices),
-                     	shuffle=False)
+                     	shuffle=True)
     else:
     	train_loader = torch.utils.data.DataLoader(
                      	dataset=train_set,
                      	batch_size=batch_size,
-                     	shuffle=False)
+                     	shuffle=True)
 
     #test set
     test_set = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
@@ -64,11 +64,11 @@ def load_mnist(labels_list=[], batch_size=1):
                     	dataset=test_set,
                     	batch_size=batch_size,
                     	sampler=SubsetRandomSampler(test_indices),
-                    	shuffle=False)
+                    	shuffle=True)
     else:
     	test_loader = torch.utils.data.DataLoader(
                     	dataset=test_set,
                     	batch_size=batch_size,
-                    	shuffle=False)
+                    	shuffle=True)
 
     return [train_loader, test_loader] 

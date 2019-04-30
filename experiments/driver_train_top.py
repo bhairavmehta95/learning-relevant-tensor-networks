@@ -11,12 +11,12 @@ import torchvision
 from torchvision import transforms, utils
 import random
 import math
-import argparse
 import json
 import pickle
 from functools import partial
 import multiprocessing
 
+from experiments.args import get_args
 from datasets.mnist_utils import load_mnist
 from feature_vectors import local_feature_vectors, custom_feature
 from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_ij
@@ -24,17 +24,8 @@ from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_i
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Learning Relevant Features (Stoudemire 2018)')
-    parser.add_argument('--logdir', type=str, default='saved-models/', help='default log directory')
-    parser.add_argument('--parser_type', type=str, default='default', help='image parser')
-    parser.add_argument('--filename', type=str, default='TODO', help='default file to load')
-    parser.add_argument('--eps', type=float, default=1e-3, help='Truncation epsilon')
-    parser.add_argument('--batch-size', type=int, default=512, help='Batch size for MNIST')
-    parser.add_argument('--seed', type=int, default=123, help='Seed')
-    parser.add_argument('--nworkers', type=int, default=4, help='Number of multiprocessing workers')
-
-    args = parser.parse_args()
-
+    args = get_args()
+    
     if not os.path.exists(args.logdir):
         os.makedirs(args.logdir)
 
@@ -44,7 +35,7 @@ if __name__ == '__main__':
     train_loader, test_loader = load_mnist()
 
     #1-get isometry layer
-    with open(os.path.join(args.logdir, args.filename), "rb") as file:
+    with open('{}-BSz{}'.format(args.filename, args.batch_size), "rb") as file:
         U = pickle.load(file)
 
     tree_depth = int(math.log2(HEIGHT * WIDTH)) 
@@ -82,7 +73,6 @@ if __name__ == '__main__':
     #5-get score on training set
     print(logreg.score(X, y))
 
-    # TODO: @TAYSSIR: PLEASE ADD YOUR TEST CODE
     n_test = len(test_loader) #number of images in the test set
     #-------Evaluate the model on the test set
     Phi = custom_feature(test_loader, n_test, args.parser_type, fake_img=False) 
