@@ -134,7 +134,6 @@ def reduced_covariance(Phi, s1, s2, traces):
     Nt = len(Phi)     #number of images
     N = len(Phi[0])       #number of lo
        
-    rho = None
     trace_tracker = 1
 
     print('Inside Reduced Covariance: Nt={}, N={}'.format(Nt, N))
