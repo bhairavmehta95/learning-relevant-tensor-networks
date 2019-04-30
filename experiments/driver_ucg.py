@@ -67,11 +67,11 @@ if __name__ == '__main__':
 
     # Write to file
     print(tree_tensor[8,0,1].shape)
-    with open(os.path.join(args.logdir, '{}-BSz{}'.format(args.filename, args.batch_size)), "wb") as file:
+    with open(os.path.join(args.logdir, '{}{}-BSz{}'.format(args.prefix, args.filename, args.batch_size)), "wb") as file:
         pickle.dump(tree_tensor, file)
 
     # Read for testing
-    with open(os.path.join(args.logdir, '{}-BSz{}'.format(args.filename, args.batch_size)), "rb") as file:
+    with open(os.path.join(args.logdir, '{}{}-BSz{}'.format(args.prefix, args.filename, args.batch_size)), "rb") as file:
         tree=pickle.load(file)
 
     print(type(tree))
