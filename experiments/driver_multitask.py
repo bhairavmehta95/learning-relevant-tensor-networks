@@ -17,15 +17,17 @@ from functools import partial
 import multiprocessing
 import time
 
-from experiments.args import get_args
+from experiments.args import get_args, get_mtl_args
 from datasets.mnist_utils import load_mnist
+from datasets.fashionMnist_utils import load_fashionMnist
 from feature_vectors import local_feature_vectors, custom_feature
-from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_ij
+from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_ij_mtl
 
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 
 if __name__ == '__main__':
     args = get_args()
+    mtl_args = get_mtl_args()
 
     if not os.path.exists(args.logdir):
         os.makedirs(args.logdir)
@@ -33,13 +35,19 @@ if __name__ == '__main__':
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    train_loader, _ = load_mnist()
+    if not mtl_args.diff_datasets:
+        train_loader1, _ = load_mnist([0, 1, 2])
+        train_loader2, _ = load_mnist([3, 4, 5])
+    else:
+        train_loader1, _ = load_mnist()
+        train_loader2, _ = load_fashionMnist()
 
     # two Phis
-    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
+    Phi1 = custom_feature(train_loader1, args.batch_size, args.parser_type, fake_img=False)
+    Phi2 = custom_feature(train_loader2, args.batch_size, args.parser_type, fake_img=False)
 
-    print('Size of train_loader: {}'.format(len(train_loader)))
-    print('Size of initial Phi: {}'.format(Phi.shape))
+    print('Size of train_loader: {}'.format(len(train_loader1)))
+    print('Size of initial Phi: {}'.format(Phi1.shape))
 
     tree_depth = int(math.log2(HEIGHT * WIDTH)) 
     iterates = HEIGHT * WIDTH
@@ -54,16 +62,19 @@ if __name__ == '__main__':
             print('Layer: {}, Iterates: {}'.format(layer, iterates))
 
             # change here
-            traces = precalculate_traces(Phi)
-            print('Traces shape: {}'.format(traces.shape))
+            traces1 = precalculate_traces(Phi1)
+            traces2 = precalculate_traces(Phi2)
+            print('Traces shape: {}'.format(traces1.shape))
 
             pairs = np.array_split(range(iterates), iterates // 2)
-            pool.map(partial(rho_ij, Phi, traces, tree_tensor, layer, args.eps), pairs)
+            pool.map(partial(rho_ij_mtl, Phi1, Phi2, traces1, traces2, 
+                tree_tensor, layer, args.eps, mtl_args.mixing_mu), pairs)
 
             print(tree_tensor[layer, 0, 1])
 
             #compute new feature map
-            Phi = generate_new_phi(Phi, tree_tensor, layer)
+            Phi1 = generate_new_phi(Phi1, tree_tensor, layer)
+            Phi2 = generate_new_phi(Phi2, tree_tensor, layer)
             #update number of local feature vectors for each image
             iterates = iterates // 2 
 
@@ -71,11 +82,11 @@ if __name__ == '__main__':
 
     # Write to file
     print(tree_tensor[8,0,1].shape)
-    with open(os.path.join(args.logdir, '{}-BSz{}'.format(args.filename, args.batch_size)), "wb") as file:
+    with open(os.path.join(args.logdir, 'MTL-{}-BSz{}'.format(args.filename, args.batch_size)), "wb") as file:
         pickle.dump(tree_tensor, file)
 
     # Read for testing
-    with open(os.path.join(args.logdir, '{}-BSz{}'.format(args.filename, args.batch_size)), "rb") as file:
+    with open(os.path.join(args.logdir, 'MTL-{}-BSz{}'.format(args.filename, args.batch_size)), "rb") as file:
         tree=pickle.load(file)
 
     print(type(tree))

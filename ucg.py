@@ -48,6 +48,36 @@ def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
     tree_tensor[layer, ind1, ind2] = truncated_U
 
 
+def rho_ij_mtl(Phi1, Phi2, traces1, traces2, tree_tensor, layer, eps, mixing_mu, indices):
+    ind1, ind2 = indices
+    rho1 = reduced_covariance(Phi1, ind1, ind2, traces1)
+    rho2 = reduced_covariance(Phi2, ind1, ind2, traces2)
+
+    rho = mixing_mu * rho1 + (1 - mixing_mu) * rho2
+
+    # Calculate Eigenvalues
+    e_val, U = np.linalg.eigh(rho) # eigenvalues arranged in ascending order
+    e_val, U = np.flip(e_val), np.flip(U, axis=1) # eigenvalues arranged in descending order
+    trace = np.sum(e_val)
+
+    truncation_sum = 0
+    # Gross notation, but makes indexing nicer
+    first_truncated_eigenvalue = 0
+
+    for eig_idx, e in enumerate(e_val):
+        truncation_sum += e
+        first_truncated_eigenvalue += 1
+
+        if (truncation_sum / trace) > (1 - eps):
+            break
+    
+    # Truncate U
+    truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
+
+    # Store U
+    tree_tensor[layer, ind1, ind2] = truncated_U
+
+
 def generate_new_phi(Phi, tree_tensor, layer):
     print('Generating new phi.')
     Phi_new = [] 
