@@ -63,18 +63,19 @@ if __name__ == '__main__':
 
     #3-construct new database representing the training data
     #images
+    n_train = len(train_loader)
+
     t1 = Phi[0].shape[0]
     t2 = Phi[0].shape[1]
     X = np.zeros((args.batch_size, t1*t2))
     for i in range(args.batch_size):
         #get reduced Phi
         X[i,:] = Phi[i].flatten()
+
     print(X.shape)
     #labels
     y = np.zeros(args.batch_size)
     for batch_idx, (x, target) in enumerate(train_loader):
-        if batch_idx == args.batch_size:
-            break
         y[batch_idx] = target[0]  
 
     #4-fit logistic regression

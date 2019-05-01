@@ -44,51 +44,52 @@ if __name__ == '__main__':
     iterates = HEIGHT * WIDTH
     start_time = time.time()
 
-    # manager = multiprocessing.Manager()
-    # with multiprocessing.Pool(processes=args.nworkers) as pool:
-    #     for layer in range(tree_depth):
-    #         tree_tensor = manager.dict()
-
-    #         print('Layer: {}, Iterates: {}'.format(layer, iterates))
-    #         traces = precalculate_traces(Phi)
-    #         print('Traces shape: {}'.format(traces.shape))
-
-    #         pairs = np.array_split(range(iterates), iterates // 2)
-    #         pool.map(partial(rho_ij, Phi, traces, tree_tensor, layer, args.eps), pairs)
-
-    #         print(tree_tensor[layer, 0, 1])
-
-    #         with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
-    #             args.prefix, args.filename, args.batch_size, layer)), "wb") as file:
-
-    #             pickle.dump(tree_tensor, file)
-
-    #         #compute new feature map
-    #         Phi = generate_new_phi(Phi, tree_tensor, layer)
-    #         #update number of local feature vectors for each image
-    #         iterates = iterates // 2 
-
     for layer in range(tree_depth):
         tree_tensor = []
         print('Layer: {}, Iterates: {}'.format(layer, iterates))
         traces = precalculate_traces(Phi)
-        print('Traces shape: {}'.format(traces.shape))
 
         pairs = np.array_split(range(iterates), iterates // 2)
         for i, indices in enumerate(pairs):
             rho_ij(Phi, traces, tree_tensor, layer, args.eps, indices)
-            print('Layer: {}, Ind: {}/{}\n{} Phi, {} TreeTensor'.format(layer, indices, len(pairs), sys.getsizeof(Phi), sys.getsizeof(tree_tensor)))
-
-        print('Saving Model')
-        # with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
-        #         args.prefix, args.filename, args.batch_size, layer)), "wb") as file:
-        #     pickle.dump(tree_tensor, file)
-
-        print('Done Saving')
 
         #compute new feature map
         Phi = generate_new_phi(Phi, tree_tensor)
         #update number of local feature vectors for each image
         iterates = iterates // 2 
 
+        print('Saving Model')
+        with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
+                args.prefix, args.filename, args.batch_size, layer)), "wb") as file:
+            pickle.dump(tree_tensor, file)
+
+    # Write to file
     print('Time for {} Images: {}'.format(args.batch_size, time.time() - start_time))
+    print(type(tree))
+    print(tree[tree_depth,0,1].shape)
+
+"""
+    manager = multiprocessing.Manager()
+    with multiprocessing.Pool(processes=args.nworkers) as pool:
+        for layer in range(tree_depth):
+            tree_tensor = manager.dict()
+
+            print('Layer: {}, Iterates: {}'.format(layer, iterates))
+            traces = precalculate_traces(Phi)
+            print('Traces shape: {}'.format(traces.shape))
+
+            pairs = np.array_split(range(iterates), iterates // 2)
+            pool.map(partial(rho_ij, Phi, traces, tree_tensor, layer, args.eps), pairs)
+
+            print(tree_tensor[layer, 0, 1])
+
+            with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
+                args.prefix, args.filename, args.batch_size, layer)), "wb") as file:
+
+                pickle.dump(tree_tensor, file)
+
+            #compute new feature map
+            Phi = generate_new_phi(Phi, tree_tensor, layer)
+            #update number of local feature vectors for each image
+            iterates = iterates // 2 
+"""

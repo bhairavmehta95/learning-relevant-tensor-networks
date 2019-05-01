@@ -19,14 +19,12 @@ import sys
 from datasets.mnist_utils import load_mnist
 from feature_vectors import local_feature_vectors, custom_feature
 
-from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
+from _constants import FEATURE_MAP_D, HEIGHT, WIDTH, TOL_RHO
 
 
 def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
     ind1, ind2 = indices
     rho = reduced_covariance(Phi, ind1, ind2, traces)
-
-    print('Rho: {}, {}: {}'.format(ind1, ind2, sys.getsizeof(rho)))
 
     # Calculate Eigenvalues
     e_val, U = np.linalg.eigh(rho) # eigenvalues arranged in ascending order
@@ -103,8 +101,6 @@ def generate_new_phi(Phi, tree_tensor):
             i += 2
 
         Phi_new.append(np.array(coarse_grained))
-        print('PhiNew for Img {}/{}: {}'.format(imageidx, len(Phi), 
-            sys.getsizeof(Phi_new)))
         
     print('New Phi with N: {}'.format(len(Phi_new[0])))
     return Phi_new
@@ -133,12 +129,17 @@ def reduced_covariance(Phi, s1, s2, traces):
     
     Nt = len(Phi)     #number of images
     N = len(Phi[0])       #number of lo
+    rho = None
        
     trace_tracker = 1
+    norm_old = 0
+    norm_diff_old = 0
 
-    print('Inside Reduced Covariance: Nt={}, N={}'.format(Nt, N))
-    for img_idx in range(Nt):
-        #get the two local feature vectors 
+    print('Inside Reduced Covariance [{}, {}]: Nt={}, N={}'.format(s1, s2, Nt, N))
+    for image_num in range(Nt):
+        #get the two local feature vectors
+        img_idx = random.choice(range(Nt))
+
         phi1 = Phi[img_idx][s1]
         phi2 = Phi[img_idx][s2]
         
@@ -147,18 +148,25 @@ def reduced_covariance(Phi, s1, s2, traces):
         for s in range(N):
             if s != s1 and s != s2:   
                 trace_tracker *= traces[img_idx][s]
-                
-        #compute the order 4 tensor
-        if img_idx % 100 == 0:
-            print('Img {} / {}, PhiShapes: {}, {}'.format(img_idx, Nt, phi1.shape, phi2.shape))
 
         phi12 = np.outer(phi1, phi2).flatten()
         rho_j = np.outer(phi12, phi12)
-        
+
         #add result to rho
         if rho is None:
             rho = np.zeros_like(rho_j)
 
         rho += trace_tracker*rho_j
-        
+
+        norm_new = np.linalg.norm(rho, 'fro')
+        norm_diff_new = norm_new - norm_old
+        if image_num > 25 and (abs(norm_diff_new - norm_diff_old)) <= TOL_RHO:
+            print('BREAKING @ Img {} / {}, PhiShapes: {}, \nSizePhi12 {}, SizeRhoJ {}, SizeRho {}'.format(image_num, Nt, phi1.shape, phi12.shape, rho_j.shape, rho.shape))
+            break
+
+
+        norm_old = norm_new
+        norm_diff_old = norm_diff_new
+            
     return rho / Nt
+
