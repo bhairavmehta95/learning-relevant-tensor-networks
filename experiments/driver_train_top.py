@@ -46,35 +46,37 @@ if __name__ == '__main__':
         else:
             pass
 
-    #1-get isometry layer
-    with open('{}{}-BSz{}'.format(args.logdir, args.filename, args.batch_size), "rb") as file:
-        U = pickle.load(file)
-
     tree_depth = int(math.log2(HEIGHT * WIDTH)) 
     iterates = HEIGHT * WIDTH
+    n_train = len(train_loader)
 
     print('*** Training top tensor ***')
     #2-compute reduced feature map
-    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
+    Phi = custom_feature(train_loader, n_train, args.parser_type, fake_img=False)
     for layer in range(tree_depth):
-        Phi = generate_new_phi(Phi, U, layer)
+        with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
+            args.prefix, args.filename, args.batch_size, layer)), "rb") as file:
+            U = pickle.load(file)
+
+        Phi = generate_new_phi(Phi, U)
         #update number of local feature vectors for each image
         iterates = iterates // 2 
 
     #3-construct new database representing the training data
     #images
-    n_train = len(train_loader)
 
     t1 = Phi[0].shape[0]
     t2 = Phi[0].shape[1]
-    X = np.zeros((args.batch_size, t1*t2))
-    for i in range(args.batch_size):
+
+    X = np.zeros((n_train, t1*t2))
+
+    for i in range(n_train):
         #get reduced Phi
         X[i,:] = Phi[i].flatten()
 
     print(X.shape)
     #labels
-    y = np.zeros(args.batch_size)
+    y = np.zeros(n_train)
     for batch_idx, (x, target) in enumerate(train_loader):
         y[batch_idx] = target[0]  
 

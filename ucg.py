@@ -47,6 +47,7 @@ def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
 
     # Store U
     tree_tensor.append(truncated_U)
+    return tree_tensor
 
 
 def rho_ij_mtl(Phi1, Phi2, traces1, traces2, tree_tensor, layer, eps, mixing_mu, indices):

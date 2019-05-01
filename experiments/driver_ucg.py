@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
         pairs = np.array_split(range(iterates), iterates // 2)
         for i, indices in enumerate(pairs):
-            rho_ij(Phi, traces, tree_tensor, layer, args.eps, indices)
+            tree_tensor = rho_ij(Phi, traces, tree_tensor, layer, args.eps, indices)
 
         #compute new feature map
         Phi = generate_new_phi(Phi, tree_tensor)
@@ -70,10 +70,11 @@ if __name__ == '__main__':
                 args.prefix, args.filename, args.batch_size, layer)), "wb") as file:
             pickle.dump(tree_tensor, file)
 
+        print(tree_tensor[0].shape)
+
     # Write to file
     print('Time for {} Images: {}'.format(args.batch_size, time.time() - start_time))
-    print(type(tree))
-    print(tree[tree_depth,0,1].shape)
+    
 
 """
     manager = multiprocessing.Manager()
