@@ -18,7 +18,7 @@ import pickle
 from datasets.mnist_utils import load_mnist
 from feature_vectors import local_feature_vectors, custom_feature
 
-from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
+from _constants import FEATURE_MAP_D, HEIGHT, WIDTH, TOL_RHO
 
 
 def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
@@ -101,8 +101,10 @@ def reduced_covariance(Phi, s1, s2, traces):
        
     rho = None
     trace_tracker = 1
-
-    for img_idx in range(Nt):
+    norm_old=0
+    norm_diff_old=0
+    for test in range(Nt):
+        img_idx = random.choice(range(Nt))
         #get the two local feature vectors 
         phi1 = Phi[img_idx][s1]
         phi2 = Phi[img_idx][s2]
@@ -122,5 +124,13 @@ def reduced_covariance(Phi, s1, s2, traces):
             rho = np.zeros_like(rho_j)
 
         rho += trace_tracker*rho_j
-        
+        norm_new = np.linalg.norm(rho,'fro')
+        norm_diff_new = norm_new-norm_old
+        if (abs(norm_diff_new-norm_diff_old)) <= TOL_RHO:
+            #print('-->'+str(img_idx))
+            #print(norm_diff_new-norm_diff_old)
+            #print('break for loop in ucg.py')
+            break
+        norm_old = norm_new
+        norm_diff_old = norm_diff_new
     return rho / Nt

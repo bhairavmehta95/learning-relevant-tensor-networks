@@ -56,7 +56,7 @@ if __name__ == '__main__':
             pairs = np.array_split(range(iterates), iterates // 2)
             pool.map(partial(rho_ij, Phi, traces, tree_tensor, layer, args.eps), pairs)
 
-            print(tree_tensor[layer, 0, 1])
+            #print(tree_tensor[layer, 0, 1])
 
             #compute new feature map
             Phi = generate_new_phi(Phi, tree_tensor, layer)
