@@ -16,6 +16,8 @@ import pickle
 from functools import partial
 import multiprocessing
 
+from sklearn.linear_model import LogisticRegression
+
 from experiments.args import get_args
 from datasets.mnist_utils import load_mnist
 from feature_vectors import local_feature_vectors, custom_feature
@@ -44,7 +46,7 @@ if __name__ == '__main__':
 
     print('*** Training top tensor ***')
     #2-compute reduced feature map
-    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
+    Phi = custom_feature(train_loader, 60000, args.parser_type, fake_img=False)
     for layer in range(tree_depth):
         Phi = generate_new_phi(Phi, U, layer)
         #update number of local feature vectors for each image
@@ -54,8 +56,10 @@ if __name__ == '__main__':
     #images
     t1 = Phi[0].shape[0]
     t2 = Phi[0].shape[1]
-    X = np.zeros((args.batch_size, t1*t2))
-    for i in range(args.batch_size):
+
+    print('Top Tensor of Shape {}'.format(Phi[0].shape))
+    X = np.zeros((60000, t1*t2))
+    for i in range(60000):
         #get reduced Phi
         X[i,:] = Phi[i].flatten()
     print(X.shape)
