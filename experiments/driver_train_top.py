@@ -16,6 +16,8 @@ import pickle
 from functools import partial
 import multiprocessing
 
+from sklearn.linear_model import LogisticRegression
+
 from experiments.args import get_args
 from datasets.mnist_utils import load_mnist
 from datasets.fashionMnist_utils import load_fashionMnist
@@ -94,7 +96,12 @@ if __name__ == '__main__':
     print('*** Evaluation on the test set ***')
     #1-compute the reduced feature map
     for layer in range(tree_depth):
-        Phi = generate_new_phi(Phi, U, layer)
+        with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
+            args.prefix, args.filename, args.batch_size, layer)), "rb") as file:
+            U = pickle.load(file)
+        
+        Phi = generate_new_phi(Phi, U)
+
         #update number of local feature vectors for each image
         iterates = iterates // 2 
 
