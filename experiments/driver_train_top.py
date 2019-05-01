@@ -47,7 +47,7 @@ if __name__ == '__main__':
             pass
 
     #1-get isometry layer
-    with open('{}-BSz{}'.format(args.filename, args.batch_size), "rb") as file:
+    with open('{}{}-BSz{}'.format(args.logdir, args.filename, args.batch_size), "rb") as file:
         U = pickle.load(file)
 
     tree_depth = int(math.log2(HEIGHT * WIDTH)) 
