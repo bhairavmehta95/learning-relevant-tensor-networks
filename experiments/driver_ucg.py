@@ -66,13 +66,13 @@ if __name__ == '__main__':
     print('Time for {} Images: {}'.format(args.batch_size, time.time() - start_time))
 
     # Write to file
-    print(tree_tensor[8,0,1].shape)
+    print(tree_tensor[tree_depth-1,0,1].shape)
     with open(os.path.join(args.logdir, '{}-BSz{}'.format(args.filename, args.batch_size)), "wb") as file:
-        pickle.dump(tree_tensor, file)
+        pickle.dump(dict(tree_tensor), file)
 
     # Read for testing
     with open(os.path.join(args.logdir, '{}-BSz{}'.format(args.filename, args.batch_size)), "rb") as file:
         tree=pickle.load(file)
 
     print(type(tree))
-    print(tree[8,0,1].shape)
+    print(tree[tree_depth-1,0,1].shape)
