@@ -14,6 +14,7 @@ import math
 import argparse
 import json
 import pickle
+import sys
 
 from datasets.mnist_utils import load_mnist
 from feature_vectors import local_feature_vectors, custom_feature
@@ -24,6 +25,8 @@ from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
     ind1, ind2 = indices
     rho = reduced_covariance(Phi, ind1, ind2, traces)
+
+    print('Rho: {}, {}: {}'.format(ind1, ind2, sys.getsizeof(rho)))
 
     # Calculate Eigenvalues
     e_val, U = np.linalg.eigh(rho) # eigenvalues arranged in ascending order
@@ -45,7 +48,7 @@ def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
     truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
 
     # Store U
-    tree_tensor[layer, ind1, ind2] = truncated_U
+    tree_tensor.append(truncated_U)
 
 
 def rho_ij_mtl(Phi1, Phi2, traces1, traces2, tree_tensor, layer, eps, mixing_mu, indices):
@@ -75,10 +78,10 @@ def rho_ij_mtl(Phi1, Phi2, traces1, traces2, tree_tensor, layer, eps, mixing_mu,
     truncated_U = U[:, :first_truncated_eigenvalue] # keep first r cols of U
 
     # Store U
-    tree_tensor[layer, ind1, ind2] = truncated_U
+    tree_tensor.append(truncated_U)
 
 
-def generate_new_phi(Phi, tree_tensor, layer):
+def generate_new_phi(Phi, tree_tensor):
     print('Generating new phi.')
     Phi_new = [] 
     iterates = len(Phi[0])
@@ -91,7 +94,7 @@ def generate_new_phi(Phi, tree_tensor, layer):
             ind2 = i + 1
             x = Phi[imageidx][ind1] #local feature vector1 type: numpy.ndarray
             y = Phi[imageidx][ind2] #local feature vector2
-            truncated_U = tree_tensor[layer, ind1, ind2] #get layer of isometries
+            truncated_U = tree_tensor[i // 2] #get layer of isometries
 
             phi_xy = np.outer(x,y).flatten()
             phi_reduced = np.dot(truncated_U.T,phi_xy)
@@ -100,6 +103,8 @@ def generate_new_phi(Phi, tree_tensor, layer):
             i += 2
 
         Phi_new.append(np.array(coarse_grained))
+        print('PhiNew for Img {}/{}: {}'.format(imageidx, len(Phi), 
+            sys.getsizeof(Phi_new)))
         
     print('New Phi with N: {}'.format(len(Phi_new[0])))
     return Phi_new
@@ -127,11 +132,11 @@ def reduced_covariance(Phi, s1, s2, traces):
     #Phi is a list starting from the second layer
     
     Nt = len(Phi)     #number of images
-    N = len(Phi[0])       #number of local features vectors in Phi
+    N = len(Phi[0])       #number of lo
        
-    rho = None
     trace_tracker = 1
 
+    print('Inside Reduced Covariance: Nt={}, N={}'.format(Nt, N))
     for img_idx in range(Nt):
         #get the two local feature vectors 
         phi1 = Phi[img_idx][s1]
@@ -144,6 +149,9 @@ def reduced_covariance(Phi, s1, s2, traces):
                 trace_tracker *= traces[img_idx][s]
                 
         #compute the order 4 tensor
+        if img_idx % 100 == 0:
+            print('Img {} / {}, PhiShapes: {}, {}'.format(img_idx, Nt, phi1.shape, phi2.shape))
+
         phi12 = np.outer(phi1, phi2).flatten()
         rho_j = np.outer(phi12, phi12)
         

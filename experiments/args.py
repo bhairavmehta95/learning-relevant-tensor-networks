@@ -3,6 +3,7 @@ import argparse
 def get_args():
     parser = argparse.ArgumentParser(description='Learning Relevant Features (Stoudemire 2018)')
     parser.add_argument('--logdir', type=str, default='saved-models/', help='default log directory')
+    parser.add_argument('--prefix', type=str, default='', help='prefix to append to file')
     parser.add_argument('--parser_type', type=str, default='default', choices=['default', 
         'row', 'column', 'spiral', 'block'], help='image parser')
     parser.add_argument('--dataset', type=str, default='mnist', 
