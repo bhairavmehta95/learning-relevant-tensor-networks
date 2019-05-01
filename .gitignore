@@ -6,4 +6,5 @@ __pycache__/
 
 # MNIST data
 mnist/
+data/
 
