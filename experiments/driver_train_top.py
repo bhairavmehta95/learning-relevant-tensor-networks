@@ -35,7 +35,8 @@ if __name__ == '__main__':
     train_loader, test_loader = load_mnist()
 
     #1-get isometry layer
-    with open('../saved-models/{}{}-BSz{}'.format(args.logdir, args.filename, args.batch_size), "rb") as file:
+    #n_train = len(train_loader) #number of images in the test set
+    with open('C:/Users/taido/Desktop/cours/tensor/Project/learning-relevant-tensor-networks/saved-modelssaved-models/{}{}-BSz{}'.format(args.logdir, args.filename, args.batch_size), "rb") as file:
         U = pickle.load(file)
 
     tree_depth = int(math.log2(HEIGHT * WIDTH)) 
