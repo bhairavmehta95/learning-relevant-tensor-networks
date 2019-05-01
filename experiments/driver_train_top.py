@@ -35,7 +35,7 @@ if __name__ == '__main__':
     train_loader, test_loader = load_mnist()
 
     #1-get isometry layer
-    with open('{}-BSz{}'.format(args.filename, args.batch_size), "rb") as file:
+    with open('{}{}-BSz{}'.format(args.logdir, args.filename, args.batch_size), "rb") as file:
         U = pickle.load(file)
 
     tree_depth = int(math.log2(HEIGHT * WIDTH)) 
@@ -98,5 +98,6 @@ if __name__ == '__main__':
     for batch_idx, (x, target) in enumerate(test_loader):
         y[batch_idx] = target[0]
 
+    print('Test score for model: {}-BSz{}'.format(args.filename, args.batch_size))
     #3-get score on test set
     print(logreg.score(X, y))
