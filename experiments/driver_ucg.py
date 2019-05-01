@@ -2,6 +2,11 @@
 # coding: utf-8
 from __future__ import print_function, division
 import os
+
+os.environ["MKL_NUM_THREADS"] = "10" 
+os.environ["NUMEXPR_NUM_THREADS"] = "10" 
+os.environ["OMP_NUM_THREADS"] = "10" 
+
 import torch
 from skimage import io, transform 
 import numpy as np
