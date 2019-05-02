@@ -1,6 +1,7 @@
 import numpy as np
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 from datasets.parse_image import ImageParser
+from math import cos, sin, pi
 
 def local_feature_vectors(vector, feature_type):
     """ 
@@ -35,7 +36,7 @@ def local_feature_vectors(vector, feature_type):
 
     return phi.T
 
-def custom_feature(data_loader, batch_size, parser_type='default', feature_type, fake_img=True):
+def custom_feature(data_loader, batch_size, parser_type='default', feature_type='default', fake_img=True):
     """ For each image: 
             Transform each pixel of each image to a vector of dimension 2 """
     
