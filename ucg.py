@@ -23,6 +23,18 @@ from _constants import FEATURE_MAP_D, HEIGHT, WIDTH, TOL_RHO
 
 
 def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
+    """
+    Compute the isometries matrices at a given layer.
+    INPUT:
+        Phi: Contains the feature vectors.
+        traces: The precomputed traces
+        tree_tensor: The isometry that is going to be updated.
+        layer: The current layer.
+        eps: The truncation cutoff
+        indices: List containing two indices.
+    OUTPUT:
+        tree_tensor: The updated isometry layer.
+    """
     ind1, ind2 = indices
     rho = reduced_covariance(Phi, ind1, ind2, traces)
 
@@ -51,6 +63,21 @@ def rho_ij(Phi, traces, tree_tensor, layer, eps, indices):
 
 
 def rho_ij_mtl(Phi1, Phi2, traces1, traces2, tree_tensor, layer, eps, mixing_mu, indices):
+    """
+    Compute the isometries matrices at a given layer in multi tesk setting.
+    INPUT:
+        Phi1: Contains the feature vectors of task 1.
+        Phi2: Contains the feature vectors of task 2.
+        traces1: The precomputed traces for task 1.
+        traces2: The precomputed traces for task 2.
+        tree_tensor: The isometry that is going to be updated.
+        layer: The current layer.
+        eps: The truncation cutoff.
+        mixing_mu: The mixing parameter.
+        indices: List containing two indices.
+    OUTPUT:
+        tree_tensor: The updated isometry layer.
+    """
     ind1, ind2 = indices
     rho1 = reduced_covariance(Phi1, ind1, ind2, traces1)
     rho2 = reduced_covariance(Phi2, ind1, ind2, traces2)
@@ -81,6 +108,16 @@ def rho_ij_mtl(Phi1, Phi2, traces1, traces2, tree_tensor, layer, eps, mixing_mu,
 
 
 def generate_new_phi(Phi, tree_tensor):
+    """
+    Generate the new representation of the input data in the high-dimensional
+    feature space.
+    INPUT:
+        Phi: Represent the old representation of input data in the feature space.
+        tree_tensor: Represent the isometry layer U.
+    OUTPUT:
+        Phi_new: Contains the new feature vectors after coarse graining using U.
+
+    """
     print('Generating new phi.')
     Phi_new = [] 
     iterates = len(Phi[0])
@@ -108,8 +145,15 @@ def generate_new_phi(Phi, tree_tensor):
 
 
 def precalculate_traces(Phi):
+    """
+    Computes the traces of each outer product in the covariance.
+    INPUT:
+        Phi: Contains the feature vectors.
+    OUTPUT:
+        traces: Matrix containing all the computed traces.
+    """
     Nt = len(Phi)     #number of images
-    N = len(Phi[0])       #number of local features vectors in Phi
+    N = len(Phi[0])   #number of local features vectors in Phi
 
     traces = np.zeros((Nt, N))
 
@@ -122,14 +166,19 @@ def precalculate_traces(Phi):
 
 
 def reduced_covariance(Phi, s1, s2, traces):
-    """ Compute the reduced covariance matrix given the two position (s1,s2) in feature matrix of an image.
-        Example: to compute the reduced covariance matrix ro34, s1=2 and s2=3"""
-    
-    #Phi is a tensor as in the case for the first layer
-    #Phi is a list starting from the second layer
+    """ 
+    Compute the reduced covariance matrix given the two position (s1,s2) in feature matrix of an image.
+    INPUT:
+        Phi: Contains the feature vectors.
+        s1: First index.
+        s2: Second index.
+        traces: The precomputed traces.
+    OUTPUT:
+        rho: The computed reduced covariance.
+        """
     
     Nt = len(Phi)     #number of images
-    N = len(Phi[0])       #number of lo
+    N = len(Phi[0])   #number of local feature vectors
     rho = None
        
     trace_tracker = 1

@@ -37,8 +37,19 @@ def local_feature_vectors(vector, feature_type):
     return phi.T
 
 def custom_feature(data_loader, batch_size, parser_type='default', feature_type='default', fake_img=True):
-    """ For each image: 
-            Transform each pixel of each image to a vector of dimension 2 """
+    """
+    For each image, transform each pixel of each image to a vector of dimension 2 
+    INPUT:
+        data_loader: Contains the images we want to proceed
+        batch_size: Represent the maximum number of images that we are going to 
+                    apply the feature map on.
+        parser_type: Represent the traversal choice.
+        feature_type: Represent the choice of the local feature map that's going 
+                      to be applied to each pixel
+    OUTPUT:
+        Phi: A tensor containing the new represntation of the images in data_loader
+             after applying the feature map.
+    """
     
     #dimensions of feature tensor Phi
     dim1 = batch_size #number of images
