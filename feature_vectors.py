@@ -2,20 +2,40 @@ import numpy as np
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 from datasets.parse_image import ImageParser
 
-def local_feature_vectors(vector):
-    """ Transform a vector representing an image to a matrix where the first row=[1,1,...,1] 
-        and the elements of the second row are the elements of the vector  """
+def local_feature_vectors(vector, feature_type):
+    """ 
+    Apply a local feature map to each pixel.
+    INPUT: 
+        vector: contains all the pixel of the images.
+        feature_type: 
+            It can take the values 'default' and 'cossin'. 
+            If 'default': Transform a vector representing an image to a matrix 
+                          where the first row = [1,1,...,1] and the elements of 
+                          the second row are the elements of the vector
+            If 'cossin': Transform each pixel x contained in vector to a two dimensional 
+                         vector = [cos(0.5*pi*x), sin(0.5*pi*x)] 
+    OUTPUT:
+        phi: the new representation of the image after applying the local features maps
+    """
 
     N = HEIGHT * WIDTH
     phi = np.ones((2, N))
-    phi[1, :] = np.squeeze(vector)
-    norm = np.linalg.norm(phi, axis=0)
-    norm = norm.reshape((1,len(norm)))
-    phi /=  norm
+
+    if feature_type=='default': #transform a 
+        phi[1, :] = np.squeeze(vector)
+        norm = np.linalg.norm(phi, axis=0)
+        norm = norm.reshape((1,len(norm)))
+        phi /=  norm
+
+    if feature_type=='cossin':
+        for i in range(N):
+            phi[0,i] = cos(0.5*pi*vector[i])
+            phi[1,i] = sin(0.5*pi*vector[i])
+    
 
     return phi.T
 
-def custom_feature(data_loader, batch_size, parser_type='default', fake_img=True):
+def custom_feature(data_loader, batch_size, parser_type='default', feature_type, fake_img=True):
     """ For each image: 
             Transform each pixel of each image to a vector of dimension 2 """
     
@@ -35,7 +55,7 @@ def custom_feature(data_loader, batch_size, parser_type='default', fake_img=True
         image = parser.parse()
         image = image.flatten() #vectorize the image
         
-        image = local_feature_vectors(image)
+        image = local_feature_vectors(image, feature_type)
         Phi[batch_idx, :, :] = image
 
     return Phi

@@ -2,13 +2,15 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser(description='Learning Relevant Features (Stoudemire 2018)')
-    parser.add_argument('--logdir', type=str, default='saved-models/', help='default log directory')
-    parser.add_argument('--prefix', type=str, default='', help='prefix to append to file')
+    parser.add_argument('--logdir', type=str, default='saved-models/', help='Default log directory')
+    parser.add_argument('--prefix', type=str, default='', help='Prefix to append to file')
     parser.add_argument('--parser_type', type=str, default='default', choices=['default', 
-        'row', 'column', 'spiral', 'block'], help='image parser')
+        'row', 'column', 'spiral', 'block'], help='Image parser')
+    parser.add_argument('--feature_type', type=str, default='default', choices=['default', 
+        'cossin'], help='The local feature map to apply')
     parser.add_argument('--dataset', type=str, default='mnist', 
         choices=['mnist', 'fashion', 'hasy'], help='Which dataset to use')
-    parser.add_argument('--filename', type=str, help='default file to load')
+    parser.add_argument('--filename', type=str, help='Default file to load')
     parser.add_argument('--eps', type=float, default=1e-3, help='Truncation epsilon')
     parser.add_argument('--batch-size', type=int, default=512, help='Batch size for MNIST')
     parser.add_argument('--seed', type=int, default=123, help='Seed')

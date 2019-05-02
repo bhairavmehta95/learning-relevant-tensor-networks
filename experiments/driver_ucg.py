@@ -42,7 +42,7 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     train_loader, _ = load_mnist()
-    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, fake_img=False)
+    Phi = custom_feature(train_loader, args.batch_size, args.parser_type, args.feature_type, fake_img=False)
 
     print('Size of train_loader: {}'.format(len(train_loader)))
     print('Size of initial Phi: {}'.format(Phi.shape))

@@ -43,8 +43,8 @@ if __name__ == '__main__':
         train_loader2, _ = load_fashionMnist()
 
     # two Phis
-    Phi1 = custom_feature(train_loader1, args.batch_size, args.parser_type, fake_img=False)
-    Phi2 = custom_feature(train_loader2, args.batch_size, args.parser_type, fake_img=False)
+    Phi1 = custom_feature(train_loader1, args.batch_size, args.parser_type, args.feature_type, fake_img=False)
+    Phi2 = custom_feature(train_loader2, args.batch_size, args.parser_type, args.feature_type, fake_img=False)
 
     print('Size of train_loader: {}'.format(len(train_loader1)))
     print('Size of initial Phi: {}'.format(Phi1.shape))

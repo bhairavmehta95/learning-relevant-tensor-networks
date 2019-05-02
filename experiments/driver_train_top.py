@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     print('*** Training top tensor ***')
     #2-compute reduced feature map
-    Phi = custom_feature(train_loader, n_train, args.parser_type, fake_img=False)
+    Phi = custom_feature(train_loader, n_train, args.parser_type, args.feature_type, fake_img=False)
     for layer in range(tree_depth):
         with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
             args.prefix, args.filename, args.batch_size, layer)), "rb") as file:
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     n_test = len(test_loader) #number of images in the test set
     #-------Evaluate the model on the test set
-    Phi = custom_feature(test_loader, n_test, args.parser_type, fake_img=False) 
+    Phi = custom_feature(test_loader, n_test, args.parser_type, args.feature_type, fake_img=False) 
     print('*** Evaluation on the test set ***')
     #1-compute the reduced feature map
     for layer in range(tree_depth):
