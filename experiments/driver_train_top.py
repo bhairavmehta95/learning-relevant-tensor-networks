@@ -27,7 +27,7 @@ from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_i
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 
 if __name__ == '__main__':
-    args = get_args()
+     args = get_args()
     
     if not os.path.exists(args.logdir):
         os.makedirs(args.logdir)

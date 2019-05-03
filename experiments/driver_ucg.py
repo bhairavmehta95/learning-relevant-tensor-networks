@@ -33,7 +33,7 @@ from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_i
 from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
 
 if __name__ == '__main__':
-    args = get_args()
+     args = get_args()
 
     if not os.path.exists(args.logdir):
         os.makedirs(args.logdir)
@@ -54,23 +54,23 @@ if __name__ == '__main__':
     for layer in range(tree_depth):
         tree_tensor = []
         print('Layer: {}, Iterates: {}'.format(layer, iterates))
-        traces = precalculate_traces(Phi)
+		traces = precalculate_traces(Phi)
 
         pairs = np.array_split(range(iterates), iterates // 2)
         for i, indices in enumerate(pairs):
-            tree_tensor = rho_ij(Phi, traces, tree_tensor, layer, args.eps, indices)
+			tree_tensor = rho_ij(Phi, traces, tree_tensor, layer, args.eps, indices)
 
         #compute new feature map
-        Phi = generate_new_phi(Phi, tree_tensor)
+		Phi = generate_new_phi(Phi, tree_tensor)
         #update number of local feature vectors for each image
-        iterates = iterates // 2 
+		iterates = iterates // 2 
 
         print('Saving Model')
         with open(os.path.join(args.logdir, '{}{}-BSz{}-Layer{}'.format(
                 args.prefix, args.filename, args.batch_size, layer)), "wb") as file:
             pickle.dump(tree_tensor, file)
 
-        print(tree_tensor[0].shape)
+		print(tree_tensor[0].shape)
 
     # Write to file
     print('Time for {} Images: {}'.format(args.batch_size, time.time() - start_time))

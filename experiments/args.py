@@ -11,8 +11,8 @@ def get_args():
     parser.add_argument('--dataset', type=str, default='mnist', 
         choices=['mnist', 'fashion', 'hasy'], help='Which dataset to use')
     parser.add_argument('--filename', type=str, help='Default file to load')
-    parser.add_argument('--eps', type=float, default=1e-3, help='Truncation epsilon')
-    parser.add_argument('--batch-size', type=int, default=512, help='Batch size for MNIST')
+    parser.add_argument('--eps', type=float, default=1e-4, help='Truncation epsilon')
+    parser.add_argument('--batch-size', type=int, default=2500, help='Batch size for MNIST')
     parser.add_argument('--seed', type=int, default=123, help='Seed')
     parser.add_argument('--nworkers', type=int, default=4, help='Number of multiprocessing workers')
     parser.add_argument('--mtl', action='store_true')
