@@ -24,7 +24,7 @@ from datasets.fashionMnist_utils import load_fashionMnist
 from feature_vectors import local_feature_vectors, custom_feature
 from ucg import reduced_covariance, generate_new_phi, precalculate_traces, rho_ij
 
-from _constants import FEATURE_MAP_D, HEIGHT, WIDTH
+from constants import FEATURE_MAP_D, HEIGHT, WIDTH
 
 if __name__ == '__main__':
      args = get_args()
